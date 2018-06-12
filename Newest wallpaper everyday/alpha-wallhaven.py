@@ -132,7 +132,8 @@ endTime = time.time()
 
 # shelve保存前几张下载的图片序数
 shelfFile = shelve.open('myData')
-shelfFile['alpha-wallhaven'] = picNames[0:3]
+if len(picNames) > 3:  # 新图片超过3张才更新
+	shelfFile['alpha-wallhaven'] = picNames[0:3]
 shelfFile.close()
 
 
