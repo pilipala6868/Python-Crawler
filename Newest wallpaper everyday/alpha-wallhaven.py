@@ -70,7 +70,7 @@ def downloadPic(pNum, threadID):
 	# 获取打开文件链接
 	soup = bs4.BeautifulSoup(res.text, "html.parser")
 	imgUrl = soup.select('#wallpaper')[0].get('src')
-	res = requests.get('http:'+imgUrl)
+	res = requests.get('http:'+imgUrl, timeout=10)
 	res.raise_for_status()
 
 	# 拼接文件名
@@ -101,8 +101,22 @@ class MyThread(threading.Thread):
 			try:
 				downloadPic(urlNum, self.threadID)
 			except Exception as e:
-				downloadFail.append(picNames[urlNum])
-				print('Thread %d:\t%s' %(self.threadID, str(e)))
+				print('Thread %d:\tTry to request again #1' %(self.threadID))
+				# 请求超时，再试几次
+				requestOK = False  # 标记
+				exceptionMs = str(e)  # 先保存错误信息
+				for i in range(4):
+					try:
+						downloadPic(urlNum, self.threadID)
+						requestOK = True
+						break
+					except Exception as e:
+						print('Thread %d:\tTry to request again #%d' %(self.threadID, (i+2)))
+				# 请求多次还是不成功
+				if not requestOK:
+					downloadFail.append(picNames[urlNum])
+					print('Thread %d:\t%s' %(self.threadID, exceptionMs))
+		# 线程结束
 		print('Exiting Thread %d' %self.threadID)
 
 
@@ -144,7 +158,7 @@ print('Download pictures sum: %d\t%d failed.' %(downloadSum, (picSum-downloadSum
 if len(downloadFail) != 0:
 	print('\nFail picture number:', end='')
 	for f in downloadFail:
-		print(' ' + f, end='')
+		print(' ' + str(f), end='')
 
 # 任意输入字符才结束
 input()
