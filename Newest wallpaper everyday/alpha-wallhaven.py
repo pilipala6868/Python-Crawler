@@ -105,7 +105,7 @@ class MyThread(threading.Thread):
 				# 请求超时，再试几次
 				requestOK = False  # 标记
 				exceptionMs = str(e)  # 先保存错误信息
-				for i in range(4):
+				for i in range(2):
 					try:
 						downloadPic(urlNum, self.threadID)
 						requestOK = True
